@@ -1,0 +1,89 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
+
+speedtest_url="https://www.speedtest.net/"
+twitter_url="https://twitter.com/i/flow/login"
+# parameters
+PROMISED_DOWN = 900
+PROMISED_UP = 900
+TWITTER_EMAIL = ""
+TWITTER_PASSWORD = ""
+s = Service("/Users/lym/Desktop/Development/chromedriver")
+
+class InternetSpeedTwitterBot:
+    def __init__(self):
+        self.driver = webdriver.Chrome(service=s)
+        self.up = 0
+        self.down = 0
+
+    def get_internet_speed(self):
+        # cookies
+        self.driver.get(speedtest_url)
+        accept_cookies_button = self.driver.find_element(By.XPATH, '//*[@id="onetrust-accept-btn-handler"]')
+        accept_cookies_button.click()
+        self.driver.implicitly_wait(3)
+
+        # click go
+        go_button = self.driver.find_element(By.CSS_SELECTOR, 'a span.start-text')
+        go_button.click()
+        self.driver.implicitly_wait(10)
+
+        # get data
+        time.sleep(80)
+        self.down = self.driver.find_element(By.XPATH,
+                                           '//*[@id="container"]/div/div[3]/div/div/div/div[2]/div[3]/div[3]/div/div[3]/div/div/div[2]/div[1]/div[1]/div/div[2]/span').text
+        print(f"down: {self.down}")
+        self.up = self.driver.find_element(By.XPATH,
+                                         '//*[@id="container"]/div/div[3]/div/div/div/div[2]/div[3]/div[3]/div/div[3]/div/div/div[2]/div[1]/div[2]/div/div[2]/span').text
+        print(f"up: {self.up}")
+
+
+    def tweet_at_provider(self):
+        self.driver.get(twitter_url)
+        self.driver.implicitly_wait(10)
+        #login
+
+        google_login = self.driver.find_element(By.XPATH,'//*[@id="container"]/div/div[2]/span[1]')
+        google_login.click()
+        self.driver.implicitly_wait(5)
+
+        email_field = self.driver.find_element(By.XPATH,'//*[@id="identifierId"]')
+        email_field.send_keys(TWITTER_EMAIL)
+
+        next_button = self.driver.find_element(By.XPATH,'// *[ @ id = "identifierNext"] / div / button / span')
+        next_button.click()
+        self.driver.implicitly_wait(5)
+
+        password_button = self.driver.find_element(By.XPATH, '//*[@id="password"]/div[1]/div/div[1]/input')
+        password_button.send_keys(TWITTER_PASSWORD)
+        password_button.send_keys(Keys.ENTER)
+
+        next2_button = self.driver.find_element(By.CSS_SELECTOR, 'div.VfPpkd-RLmnJb')
+        next2_button.click()
+        self.driver.implicitly_wait(5)
+
+        # tweet
+        tweet = f"@Hyperoptic Hi Hyperoptic, why my internet speed is {self.up}up/{self.down}down when I am paying for {PROMISED_UP}up and  {PROMISED_DOWN}down."
+        input_field = self.driver.find_element(By.XPATH, '//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div[2]/div/div[2]/div[1]/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/label/div[1]/div/div/div/div/div[2]/div/div/div/div')
+        input_field.send_keys(tweet)
+        tweet_button = self.driver.find_element(By.XPATH, '//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div[2]/div/div[2]/div[1]/div/div/div/div[2]/div[3]/div/div/div[2]/div[3]')
+        tweet_button.click()
+        time.sleep(2)
+        self.driver.quit()
+
+
+my_bot = InternetSpeedTwitterBot()
+my_bot.get_internet_speed()
+my_bot.tweet_at_provider()
+
+
+
+
+
+
+
+
+
