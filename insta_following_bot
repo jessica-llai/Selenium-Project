@@ -1,0 +1,99 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
+
+s = Service("/Users/lym/Desktop/Development/chromedriver")
+
+# parameters
+ins_url="https://www.instagram.com/"
+INS_USERNAME = ""
+INS_PASSWORD = ""
+SIMILAR_ACC = ""
+
+
+
+class InsFollowingBot:
+    def __init__(self):
+        self.driver = webdriver.Chrome(service=s)
+
+
+    def login(self):
+        self.driver.get(ins_url)
+        login_page = self.driver.window_handles[0]
+
+        self.driver.implicitly_wait(10)
+
+        #cookies
+
+        allow_cookies_button = self.driver.find_element(By.XPATH,'/html/body/div[4]/div/div/button[2]')
+        allow_cookies_button.click()
+        self.driver.implicitly_wait(5)
+
+        # input
+        username_field = self.driver.find_element(By.NAME, 'username')
+        username_field.send_keys(INS_USERNAME)
+
+        password_field = self.driver.find_element(By.NAME, 'password')
+        password_field.send_keys(INS_PASSWORD)
+        password_field.send_keys(Keys.ENTER)
+        self.driver.implicitly_wait(5)
+
+        # save log in info
+        not_save_button = self.driver.find_element(By.CSS_SELECTOR,'section.ABCxa div button')
+        not_save_button.click()
+        self.driver.implicitly_wait(10)
+
+        # notification
+        try:
+            close_popup = self.driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div/div[3]/button[2]')
+        except Exception:
+            print("Popup box not found.")
+        else:
+            close_popup.click()
+        finally:
+            self.driver.implicitly_wait(5)
+
+
+    def find_followers(self):
+        # search
+        self.driver.get(url=f"{ins_url}{SIMILAR_ACC}")
+        self.driver.implicitly_wait(8)
+
+        # find followers
+        followers = self.driver.find_element(By.XPATH,'//*[@id="mount_0_0_/b"]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/main/div/ul/li[2]/a')
+        followers.click()
+        self.driver.implicitly_wait(8)
+
+    def follow(self):
+
+        path_i: str = '//*[@id="mount_0_0_/b"]/div/div/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div/div[2]/ul/div/li[1]/div/div[2]/button'
+        follow_btn = self.driver.find_element(By.XPATH, path_i)
+        follow_btn.click()
+        self.driver.implicitly_wait(8)
+        modal = self.driver.find_element(By.CSS_SELECTOR,'.isgrP')
+        for i in range(10):
+            self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", modal)
+
+
+        # quit
+        time.sleep(10)
+        self.driver.quit()
+
+
+my_bot = InsFollowingBot()
+my_bot.login()
+my_bot.find_followers()
+my_bot.follow()
+
+
+
+
+
+
+
+
+
+
