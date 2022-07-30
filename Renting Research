@@ -1,0 +1,79 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from bs4 import BeautifulSoup
+import requests
+import time
+
+# parameters
+google_form_url = ""
+spareroom_url=""
+def getHTML(url):
+    response = requests.get(url)
+    file = response.text
+    return file
+
+# open the file
+file = getHTML(spareroom_url)
+soup = BeautifulSoup(file, 'html.parser')
+
+all_location_elements = soup.select('span.listingLocation')
+all_locations = [a.text for a in all_location_elements]
+
+all_price_elements = soup.select('a strong.listingPrice')
+all_prices = [a.text.split("p")[0].strip() for a in all_price_elements]
+
+all_link_elements = soup.select('header.desktop a')  # find all will return []
+all_links = []
+for a in all_link_elements:
+    href = a['href']
+    all_links.append(f'https://www.spareroom.co.uk{href}')
+
+# open the form
+s = Service("/Users/lym/Desktop/Development/chromedriver")
+driver = webdriver.Chrome(service=s)
+
+driver.get(google_form_url)
+driver.implicitly_wait(3)
+
+#fill the form
+try:
+    for i in range(len(all_locations)):
+        n = 0
+
+        location_field = driver.find_element(By.XPATH,
+                                             '//*[@id="mG61Hd"]/div[2]/div/div[2]/div[1]/div/div/div[2]/div/div[1]/div/div[1]/input')
+        price_field = driver.find_element(By.XPATH,
+                                          '//*[@id="mG61Hd"]/div[2]/div/div[2]/div[2]/div/div/div[2]/div/div[1]/div/div[1]/input')
+        link_field = driver.find_element(By.XPATH,
+                                         '//*[@id="mG61Hd"]/div[2]/div/div[2]/div[3]/div/div/div[2]/div/div[1]/div/div[1]/input')
+        submit_btn = driver.find_element(By.XPATH, '//*[@id="mG61Hd"]/div[2]/div/div[3]/div[1]/div[1]/div/span/span')
+
+        location_field.send_keys(all_locations[i])
+        price_field.send_keys(all_prices[i])
+        link_field.send_keys(all_links[i])
+        driver.implicitly_wait(3)
+        submit_btn.click()
+        driver.implicitly_wait(5)
+        driver.get(google_form_url)
+        n+=1
+
+        if n>= 10:
+            driver.find_element(By.XPATH,'//*[@id="paginationNextPageLink"]/div/span[2]').click()
+
+
+        # another_reaponse_btn = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[1]/div/div[4]/a')
+        # another_reaponse_btn.click()
+
+except IndexError:
+    pass
+
+driver.quit()
+
+
+
+
+
+
+
